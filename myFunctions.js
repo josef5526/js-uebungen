@@ -13,3 +13,7 @@
 			usd = Math.round( usd * 100) / 100;
 			return usd.toString().replace( '.',',' );
 		}
+		
+		var random1_10 = function(){
+			return Math.floor (( Math.random() * 10) + 1 );
+		}
