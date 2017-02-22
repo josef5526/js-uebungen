@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<script src="myFunctions.js"></script>
+	<script>
+	
+		const deltaSize = 100; // 0,1m sind 100px
+		const deltaWeight = 30; // 10kg sind 30px
+		const size160 = 70;  // position left : 1,6m
+		const weight40 = 390;  // position top : 40kg
+		const maxWeight = 120;  // max. weight for show in diagram
+		const minWeight = 40;   // min. weight for show in diagram
+		const maxSize = 200;    // max. size for show in diagram
+		const minSize = 160;    // min. size for show in diagram
+		
+		var resetErrorMsg = function( id ) {
+			_e( id ).style.display = 'none';
+		}
+		
+		var calcSizePosition = function( groesse ){
+			var delta = (groesse - minSize ) / 10;
+			return size160 + Math.trunc(delta * deltaSize);
+		}
+		
+		var calcWeightPosition = function( gewicht ){
+			var delta = (gewicht - minWeight) / 10;
+			return weight40 - Math.trunc(delta * deltaWeight);
+		}
+		
+		var calculateBMI = function( e ){
+		
+			e.preventDefault();
+			
+			var gewicht, groesse, bmi, sizePosition, weightPosition;
+			
+			_e( 'noshow' ).innerHTML = '';
+			_e( 'square' ).style.display = 'none';
+
+			gewicht = einlesenFloat( _e( 'gewicht' ).value );
+			groesse = einlesenFloat( _e( 'groesse' ).value );
+			
+			if ( isNaN( gewicht ) ) {
+				_e( 'noweight' ).style.display = 'inline';
+			} else if ( isNaN( groesse ) ) {
+			    _e( 'nosize' ).style.display = 'inline';
+			} else {
+				bmi = formatZahlRound2( gewicht / Math.pow( (groesse / 100), 2) );
+				_e( 'bmi' ).innerHTML = bmi;
+				if ((gewicht >= minWeight) && (gewicht <= maxWeight)) {
+					if ((groesse >= minSize) && (groesse <= maxSize)){
+						sizePosition = calcSizePosition( groesse );
+						weightPosition = calcWeightPosition( gewicht );
+						_e( 'square' ).style.top = weightPosition + "px";
+						_e( 'square' ).style.left = sizePosition + "px";
+						_e( 'square' ).style.display = 'inline';
+					} else {
+						_e( 'noshow' ).innerHTML = 'Ihre Groesse liegt ausserhalb des Diagramms';
+					}
+				} else {
+					_e( 'noshow' ).innerHTML = 'Ihr Gewicht liegt ausserhalb des Diagramms';
+				}
+			}
+			
+		}
+		
+		window.onload = function(){
+			_e( 'bmicalc' ).onclick = calculateBMI;
+			_e( 'gewicht' ).onfocus = function(){
+				resetErrorMsg( 'noweight' );
+			}
+			_e( 'groesse' ).onfocus = function(){
+				resetErrorMsg( 'nosize' );
+			}
+		}
+		
+	</script>
+	<style>
+		#bmitable{
+			margin-left:8px;
+			margin-top:11px;
+		}
+		#bmicalc{
+			margin-left:20px;
+			margin-top:10px;
+			margin-bottom:10px;
+		}
+		#noweight{
+			display:none;
+			margin-left:5px;
+			color:red;
+		}
+		#nosize{
+			display:none;
+			margin-left:5px;
+			color:red;
+		}
+		#square{
+			position:absolute;
+			top:400px;
+			left:70px;
+			width:5px;
+			height:5px;
+			color:black;
+			font-style:bold;
+			display:none;
+		}
+		#noshow{
+			margin-top:10px;
+			margin-left:20px;
+			color:red;
+		}
+	</style>
+</head>
+<body>
+	<form id="formular">
+		<span style="margin-top:10px;">Gewicht (kg) : <input id="gewicht"></span><span id="noweight">Unzulässige Eingabe</span><br>
+		<span style="margin-top:10px;">Grösse (cm)  : <input id="groesse"></span><span id="nosize">Unzulässige Eingabe</span><br>
+		<button id="bmicalc">BMI berechnen</button>
+	</form>
+	<div>
+		Ihr BMI beträgt : <span id="bmi"></span>
+	</div>
+	<div>
+		<span id="noshow"></span><br>
+		<img id="bmitable" src="bmi_tabelle.gif" width="496" height="301">
+		<span id="square">X</span>
+	</div>
+</body>
+</html> 

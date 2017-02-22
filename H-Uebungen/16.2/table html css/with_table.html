@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<title>Mit Tabelle</title>
+	<style type="text/css">
+		#square1{
+			background-color:red;
+			border:5px black solid;
+			width:1100px;
+			height:100px;
+		}
+		#square2{
+			background-color:orange;
+			border:5px black solid;
+			width:1100px;
+			height:10px;
+		}
+		#square3{
+			border:5px black solid;
+			width:1100px;
+			height:300px;
+		}
+		#square31{
+			border:5px black solid;
+			width:363px;
+			height:300px;
+			float:left;
+			background-color:teal;
+		}
+		#square32{
+			border:5px black solid;
+			width:363px;
+			height:300px;
+			float:left;
+			background-color:lime;
+		}
+		#square33{
+			border:5px black solid;
+			width:364px;
+			height:300px;
+			float:right;
+			background-color:deeppink;
+		}
+		#table33{
+			margin-left:8px;
+			margin-top:8px;
+			}
+		#square331{
+			border:5px black solid;
+			width:330px;
+			height:75px;
+			margin-left:10px;
+			margin-top:10px;
+			background-color:darkmagenta;
+		}
+		#square332{
+			border:5px black solid;
+			width:330px;
+			height:75px;
+			margin-left:10px;
+			margin-top:10px;
+			background-color:darkmagenta;
+		}
+		#square333{
+			border:5px black solid;
+			width:330px;
+			height:75px;
+			margin-left:10px;
+			margin-top:10px;
+			background-color:darkmagenta;
+		}
+		#square4{
+			background-color:yellow;
+			border:5px black solid;
+			width:1100px;
+			height:100px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<table>
+		<tr>
+			<th id="square1" colspan="3"></th>
+		</tr>
+		<tr>
+			<th id="square2" colspan="3"></th>
+		</tr>
+		<tr>
+			<td id="square31"></td>
+			<td id="square32"></td>
+			<td id="square33">
+				<table id="table33"">
+					<tr>
+						<td id="square331"></td>
+					</tr>
+					<tr>
+						<td id="square332" style="margin-top:10px;"></td>
+					</tr>
+					<tr>
+						<td id="square333"></td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<th id="square4" colspan="3"></th>
+		</tr>
+	</table>
+	
+</body>
+
+</html>
