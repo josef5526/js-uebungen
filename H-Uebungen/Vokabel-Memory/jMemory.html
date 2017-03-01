@@ -1,0 +1,284 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<script src="jquery-3.1.1.min.js"></script>
+	<script>
+	
+	var flippedCards = [];       // holds "flipped" cards
+	var unusedCardValues = [];   // helper for game setup
+	var flipBlocked = false;     // used to block card clicks if 2 cards are flipped
+	var flipBackTimerId;         // timerID; not neccessary because no cancel needed 
+	var foundPairs, pairsToFind; // for end of game detection
+	var trials;                  // number of trials
+	
+	var voc = [
+			['dog','Hund'],
+			['cat','Katze'],
+			['snake','Schlange'],
+			['lion','Loewe'],
+			['mouse','Maus'],
+			['bug','Kaefer'],
+			['ant','Ameise'],
+			['horse','Pferd'],
+	   		['cow','Kuh'], 
+	    	['sheep','Schaf'],
+	    	['bee','Biene'],
+	    	['butter&shy;fly','Schmetter&shy;ling'],
+	    	['bat','Fleder&shy;maus'],
+	    	['goat','Ziege'],
+	    	['fish','Fisch']];
+	    	
+	var vocPrepared = [];   // helper for setup play
+	
+	// make for each possible card an own data entry with value/row(index 1. array)/cell(index into 2. array)
+	// cell currently not necessary
+	var prepareForShuffle = function(){
+	
+		var single;
+		for (var i = 0; i < voc.length; i++){
+			single = [];
+			single.push( voc[i][0] );
+			single.push( i );
+			single.push( 0 );
+			vocPrepared.push( single );
+			single = [];
+			single.push( voc[i][1] );
+			single.push( i );
+			single.push( 1 );
+			vocPrepared.push( single );
+		}
+	}
+
+	// get random value between min and max
+	var getRandomValue = function( randMin, randMax ){
+		var rand = 0;
+		while ((rand < randMin) || (rand > randMax)){
+			rand = Math.floor(Math.random() * 100);
+		}
+		return rand;
+	}
+		
+	// prepare the unusedCardValues for shuffle
+	var setUnusedCards = function(){
+		unusedCardValues = [];
+		for (var i = 0; i < vocPrepared.length; i++){
+			unusedCardValues.push( i );
+		}
+	}
+	
+	// check if both flipped cards corresponds
+	var checkFlippedCards = function(){
+	
+		var jCard1, jCard2;
+		var row1, row2;
+		
+		if (flippedCards.length < 2){
+			return false;
+		}
+		jCard1 = $( '#' + flippedCards[0] );
+		row1 = jCard1.attr( 'vocRow-i' );
+		jCard2 = $( '#' + flippedCards[1] );
+		row2 = jCard2.attr( 'vocRow-i' );
+		
+		if (row1 == row2){  // both cards from same array (1. level) ?
+			// mark cards as found pair and remove click handler
+			jCard1.addClass( 'done' );
+			jCard1.off( 'click' );
+			jCard2.addClass( 'done' );
+			jCard2.off( 'click' );
+			flippedCards = [];
+			foundPairs++;
+			if (foundPairs == pairsToFind){ // all pairs found?
+				var str = 'Gratulation! Anzahl Versuche : ' + (trials / 2);
+				$( '.resultText' ).html( str );
+				$( '#result' ).css( 'display', 'block' );
+			}
+			return true;
+		}
+		return false;
+		
+	}
+	
+	// flip the selected card; check if it is the second one; if yes, check if both are a correct pair
+	// if not correct pair: start timer which flippes both back to hidden.
+	var handleFlip = function( e ){
+	
+		e.preventDefault();
+		
+		if (flipBlocked){ // if 2 cards are flipped -> avoid flip of additional cards
+			return;
+		}
+		
+		var jCard;
+		
+		trials++;
+		jCard = $( this );
+		cardId = jCard.attr( 'id' );
+		flipBlocked = ((flippedCards.length + 1) == 2);
+		jCard.addClass( 'flipped' ); // show card
+		jCard.off( 'click' );        // remove click handler
+		flippedCards.push(cardId);
+		if (checkFlippedCards()){
+			flipBlocked = false;
+			return;
+		}
+		if (flipBlocked){ // not corresponding cards -> hide cards after 2sec
+			flipBackTimerId = setTimeout(flipFlippedCards, 2000);
+		}
+		
+	}
+	
+	// handle timer to hide both flipped cards
+	var flipFlippedCards = function(){
+		var jCard;
+//		if (flippedCards.length != 2){
+//			return;
+//		}
+		if (flippedCards.length > 0){
+			for (var i = 0; i < 2; i++){
+				jCard = $( '#' +  flippedCards[i] );
+				jCard.removeClass( 'flipped' );   // hide card
+				jCard.click( handleFlip );        // set click handler again
+			}
+		}
+		flippedCards = [];
+		flipBlocked = false;
+	}
+	
+	// choose one of the still unused cards for game setup
+	var randomCardValue = function(){
+	
+		var selCardInd, selCard;
+		
+		if (unusedCardValues.length > 1){
+			selCardInd = getRandomValue( 1, unusedCardValues.length ) - 1;
+			selCard = unusedCardValues[selCardInd];
+			unusedCardValues.splice( selCardInd, 1 );
+		} else {
+			selCard = unusedCardValues[0];
+		}
+		return selCard;
+		
+	}
+	
+	// select a card for game setup
+	var chooseCardValue = function( jCard ){
+		
+		var selCard;
+		var card;
+		
+		selCard = randomCardValue();
+		card = vocPrepared[selCard];
+		jCard.attr( 'vocRow-i' , card[1] );
+		jCard.attr( 'vocCell-i' , card[2] );
+		return card[0];
+		
+	}
+	
+	// create the cards and assign the card values to it
+	var createCards = function(){
+		
+		var jGame = $( '#game' );
+		var jCard, jSide;
+		var cardValue;
+			
+		foundPairs = 0;
+		pairsToFind = voc.length;
+		trials = 0;
+		
+		$( '#result' ).css( 'display', 'none' );
+		
+		if (vocPrepared.length == 0){
+			prepareForShuffle();
+		}
+		
+		setUnusedCards();
+		
+		// create the DOM elements representing the cards
+		for (var i = 0; i < vocPrepared.length; i++){
+		
+			jCard = $( document.createElement( 'div' ) );
+			jCard.attr( 'id' , 'card' + i);
+			cardValue = chooseCardValue( jCard ); // parent of the card side's
+			jCard.addClass( 'flipper' );
+			jCard.click( handleFlip );
+			jSide = $( document.createElement( 'div' ) );  // card side with the value
+			jSide.html( cardValue );
+			jCard.append( jSide);
+			jSide = $( document.createElement( 'div' ) );  // back side of the card
+			jSide.html( 'MEMO' );
+			jCard.append( jSide);
+			jGame.append( jCard );
+		}
+	}	
+	
+	// start new game
+	var handleAgain = function( e ){
+	
+		e.preventDefault();
+		$( '#game' ).empty();
+		createCards();
+		
+	}
+    
+	$(document).ready(function(){
+		
+		$( '#againBtn' ).click( handleAgain );
+		createCards();
+		
+	});	
+	</script>	
+	<style>
+		#game { width:720px; border:1px solid #000; padding:1px; background:#ddd; font-family:Arial; }
+		#game .flipper { float:left;width:100px; height:100px; position:relative; margin:10px; }
+		#game .flipper div { transition:transform 1s; position:absolute; top:0; left:0; backface-visibility: hidden; width:100px; height:100px;
+		                     border:1px solid #000; background:#fff; text-align:center; line-height:95px; }
+		#game::after { content:''; display:block; clear:left;  }
+		#game .flipper { perspective: 1000; }
+		#game div > div:nth-child(1) { transform: rotateY(180deg); letter-spacing:-0.02em; }
+		#game div > div:nth-child(2) { transform: rotateY(0deg); background-image:url("bg-back.png"); color:#ccc; font-weight:bold }
+		#game div.flipped { }
+		#game div.flipped  > div:nth-child(1) { transform: rotateY(0deg); }
+		#game div.flipped  > div:nth-child(2) { transform: rotateY(180deg); }
+		#game div.done > div:nth-child(1)  { transition:all 0.5s; background-image:url("bg-done.png"); 
+		                                     transform:rotateY(0deg)  scale(0.9); letter-spacing:-0.02em; }
+	
+		#result{
+			width:600px;
+			display:none;
+		}
+		#result div.resultText{
+			color:red;
+			font-weight:bold;
+			font-size: 2em;
+			text-align:center;
+			margin-top:20px;
+		}
+		#again{
+			text-align:center;	
+		}
+		#againBtn{
+			margin-top:20px;
+		}
+	</style>
+	
+</head>
+<body>
+	<div id="game">
+		<!-- Inhalte dynamisch erzeugen 
+		<div class="flipper">
+			<div>FRONT</div>
+			<div>BACK</div>
+		</div> -->
+	</div>
+	<div id="result">
+		<div class="resultText">
+		</div>
+		<div id="again">
+			<button id="againBtn">Noch einmal</button>
+		</div>
+	</div>
+</body>
+</html>
