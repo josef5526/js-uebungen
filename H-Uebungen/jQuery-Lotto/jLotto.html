@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<script src="jquery-3.1.1.min.js"></script>
+	<script>
+		
+		var lottoZahlen = [];
+		var ziehung = [];
+		var zusatz = 0;
+		var zzErraten = false;
+		
+		var formatZahlen = function( aZahlen ){
+			var zahlStr = '';
+			if (aZahlen.length > 0){
+				for (var  i = 0; i < aZahlen.length; i++){
+					zahlStr += aZahlen[i] + '';
+					if (i < 5) {
+						zahlStr += ' ';
+					}
+				}
+			}
+			return zahlStr;
+		}
+		
+		var anzeigenZahlen = function( aZahlen, id, prefix ){
+			var zahlStr = prefix + formatZahlen( aZahlen );
+			$( '#'+id ).html( zahlStr );
+		}
+		
+		var auswahl = function( e ){
+
+			e.preventDefault;
+		
+			var elem = $( this );
+			var addIt = true;
+			var ind = -1;
+			
+			var x = elem.attr( 'zahl-i' ) * 1;			
+
+			if (elem.hasClass( 'ausgewaehlt' ) ){
+				elem.removeClass( 'ausgewaehlt' );
+			} else {
+				if (lottoZahlen.length < 6){
+					elem.addClass( 'ausgewaehlt' );
+				} else {
+					return;
+				}
+			}
+			if (lottoZahlen.length == 0){
+				lottoZahlen.push( x );
+			} else if (lottoZahlen.length <= 6){
+				ind = lottoZahlen.indexOf( x );
+				if (ind > -1) {
+					lottoZahlen.splice(ind,1);
+					addIt = false;
+				}
+				if (addIt){
+					lottoZahlen.push(x);
+				}
+				lottoZahlen.sort(function (a,b){
+					return a - b;
+				}
+				);
+			}
+			anzeigenZahlen(lottoZahlen, 'gewaehlt', 'Ihre Zahlen : ');
+			
+			if (lottoZahlen.length == 6){
+				$( '#ziehung' ).css( 'display', 'block' );
+			} else {
+				$( '#ziehung' ).hide();
+				$( '#gezogen' ).html ('');
+				$( '#ergebnis' ).html('');
+			}
+		}
+		
+		var zieheZahl = function(){
+			var x = 0;
+			while ((x < 1) || (x > 45)){
+				x = Math.floor(Math.random() * 100); // % 46;
+			}
+			return x;
+		}
+		
+		var istInGewaehlten = function( zahl ){
+			
+			return (lottoZahlen.indexOf( zahl ) > -1);
+			
+		}
+		
+		var resetZiehung = function(){
+		
+			var id;
+			for (var i = 0; i < ziehung.length; i++){
+				id = '#td-' + ziehung[i];
+				if (lottoZahlen.indexOf(ziehung[i]) > -1){
+					$( id ).removeClass( 'getroffen' );
+					$( id ).addClass( 'ausgewaehlt' );
+				} else {
+					$( id ).removeClass( 'gezogen' );
+				}
+			}
+			id = '#td-' + zusatz;
+			if (zzErraten){
+				$( id ).removeClass( 'getroffen' );
+				$( id ).addClass( 'ausgewaehlt' );
+			} else {
+				$( id ).removeClass( 'gezogen' );
+			}			
+			zzErraten = false;
+			
+		}
+		
+		var showZiehung = function(){
+		
+			var id;
+			for (var i = 0; i < ziehung.length; i++){
+				id = '#td-' + ziehung[i];
+				if (lottoZahlen.indexOf(ziehung[i]) > -1){
+					$( id ).removeClass( 'ausgewaehlt' );
+					$( id ).addClass( 'getroffen' );
+				} else {
+					$( id ).addClass( 'gezogen' );
+				}
+			}
+			id = '#td-' + zusatz;
+			if (zzErraten){
+				$( id ).removeClass( 'ausgewaehlt' );
+				$( id ).addClass( 'getroffen' );
+			} else {
+				$( id ).addClass( 'gezogen' );
+			}
+		}
+		
+		var ziehen = function( e ){
+		
+			e.preventDefault();
+			
+			var erratene = [];
+			var addIt = true;
+			var erraten = 0;
+			var str = '';
+			var geldWert = false;
+			
+			$( '#ergebnis' ).html( '' );
+			console.log(typeof( ziehung ));
+			if ((typeof( ziehung ) == 'object') && ( ziehung.length > 0)){
+				resetZiehung();
+			}
+			
+			ziehung = [];
+			
+			while (ziehung.length < 7){
+				x = zieheZahl();
+				addIt = true;
+				if (ziehung.length > 0){
+					if (ziehung.indexOf( x ) > -1){
+						addIt = false;
+					}
+				}
+				if (addIt){
+					ziehung.push(x);
+				}
+			}
+			
+			zusatz = ziehung[6] * 1;
+			ziehung.splice(6,1);
+			ziehung.sort(function (a,b){
+					return a - b;
+				}
+			);
+
+			zzErraten = istInGewaehlten( zusatz );
+			
+			showZiehung();
+			
+			anzeigenZahlen(ziehung, 'gezogen', 'Zahlen der Ziehung : ');
+			
+			$( '#gezogen' ).html( $( '#gezogen' ).html() + ' Zusatzzahl : ' + zusatz );
+			
+			for (var i = 0; i < ziehung.length; i++) {
+				if ( istInGewaehlten( ziehung[i] ) ){
+					erraten++;
+					erratene.push( ziehung[i] );
+				}
+			}
+			geldWert = (erraten > 2);
+			if (geldWert){
+				$( '#ergebnis' ).css( 'color', 'red' );
+			} else {
+				$( '#ergebnis' ).css( 'color', 'black');
+			}
+			if (erraten > 0){
+			    str = 'Sie haben einen ' + erraten + 'er';
+				if (zzErraten) {
+					str += ' mit Zusatzzahl';
+				}
+				str += ' : ' + formatZahlen( erratene );
+				if (zzErraten){
+					str += ' Zusatzzahl ' + zusatz;
+				}
+				$( '#ergebnis' ).html( str );
+			} else {
+				if (zzErraten) {
+					$( '#ergebnis' ).html( 'Nur die Zusatzzahl : ' + zusatz );
+				} else {
+					$( '#ergebnis' ).html( 'Non niente nulla!' );
+				}
+			}
+		}
+		
+		var createTable = function(){
+			var jTable, oTable;
+			var jTblBody;
+			var jTr, jTdata, oTdata;
+			var zahl = 1;
+			
+			oTable = document.createElement( 'table' );
+			// oTable.setAttribute( 'border', '1' );
+			
+			jTable = $( oTable );
+			jTable.attr( 'border', '1' );
+			jTblBody = $( document.createElement( 'tbody' ));
+			jTable.append( jTblBody );
+			
+			for (var i = 1; i < 10; i++){
+				jTr = $( document.createElement( 'tr' ) );
+				for (var j = 1; j < 6; j++){
+					oTdata = document.createElement( 'td' );
+					jTdata = $(oTdata);
+					jTdata.html( zahl + '' );
+					jTdata.attr('zahl-i',zahl);
+					//jTdata.zahl = zahl;
+					oTdata.id = 'td-' + zahl;
+					jTdata.click( auswahl );
+					
+					jTr.append( jTdata);
+					zahl++;
+				}
+				jTblBody.append( jTr );
+			}
+						
+			$( '#tabelle' ).append( jTable );
+			
+		}
+		
+		$( document ).ready(function(){
+		
+			$( '#ziehung' ).css( 'display', 'none' );
+			createTable();
+			$( '#ziehen' ).click( ziehen );
+			
+		});
+	</script>
+	<style>
+		#ziehung{
+			margin-top:10px;
+			margin-bottom:10px;
+		}
+		
+		.ausgewaehlt {
+			background:red;
+			}
+		.gezogen {
+			background:yellow;	
+			}
+		.getroffen {
+			background:green;	
+			}
+		
+		td {
+			padding:0.2em;
+			text-align:center;
+			}
+			
+	</style>
+</head>
+<body>
+	<div id="tabelle">
+	</div>
+	<div id="gewaehlt">		
+	</div>
+	<div id="ziehung">
+		<button id="ziehen">Ziehung</button>
+	</div>
+	<div id="gezogen">
+	</div>
+	<div id="ergebnis">
+	</div>
+	
+</body>
+</html>

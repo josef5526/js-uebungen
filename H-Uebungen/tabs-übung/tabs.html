@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<script>
+
+		var tabs = [];
+		var pages = [];
+		
+		var handleClick = function( e ){
+			
+			e.preventDefault();
+			for (var i = 0; i < tabs.length; i++){
+				//if (tabs[i].nodeName == 'LI' ){
+					if (tabs[i] == this){
+						tabs[i].classList.add( 'selected' );
+						pages[i].classList.remove( 'hidden' );
+					} else {
+						tabs[i].classList.remove( 'selected' );
+						pages[i].classList.add( 'hidden' );
+					}
+				//}
+			}
+		}
+		
+		window.onload = function(){
+			var inttabs;
+			var helper;
+			inttabs = document.getElementById( 'tabs' ).childNodes;
+			for (var i = 0; i < inttabs.length; i++){
+				if (inttabs[i].nodeName == 'LI'){
+					inttabs[i].onclick = handleClick;
+					tabs.push( inttabs[i]);
+				} 
+			}
+			inttabs = document.body.childNodes;
+			for (var i = 0; i < inttabs.length; i++){
+				helper = inttabs[i];
+				if (helper.nodeName == 'DIV'){
+					if (helper.className.indexOf( 'tabcontent' ) > -1){
+						pages.push( helper );
+					}
+				}
+			}
+		}
+		
+	</script>
+	<style>
+		body { font-size: 80%; font-family: 'Lucida Grande', Verdana, Arial, Sans-Serif; }
+		ul#tabs{ list-style-type:none; padding: 0 0 0.3em 0; margin:0.4em 0 0 0;}
+		ul#tabs li{ display:inline; }
+		ul#tabs li{ background:lightgreen; border:1px black solid;margin-left:0.2em; border-bottom:none; padding:0.3em;text-decoration: none;
+					border-radius:0.4em 0.4em 0 0;}
+		ul#tabs li:hover { background:lightblue; }
+		ul#tabs li.selected { background:red; color:white; padding: 0.7em 0.3em 0.38em 0.3em; font-weight:bold; font-size:1.2em; }
+		
+		div.tabcontent{ border:1px black solid; background:red; color:white; padding:0.5em; border-radius:0.4em 0.4em 0 0;} 			
+		div.hidden{ display:none; }
+	</style>
+</head>
+<body>
+	<h1>Javascript TABS Example</h1>
+	
+	<ul id="tabs">
+		<li class="selected">Seite 1</li>
+		<li>Seite 2</li>
+		<li>Seite 3</li>
+	</ul>
+	<div class="tabcontent">Das ist die erste Seite.</div>
+	<div class="tabcontent hidden">Das ist die zweite Seite.</div>
+	<div class="tabcontent hidden">Das ist die dritte Seite.</div>
+</body>
+</html>
